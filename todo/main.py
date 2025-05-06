@@ -24,6 +24,7 @@ def create(request: schemas.Todo, db: Session = Depends(get_db)):
     # Create a new Todo model instance with the data from the request
     new_todo = models.Todo(
         description=request.description,
+        deadline=request.deadline,
         done=request.done)
        
     # Add the new Todo to the database

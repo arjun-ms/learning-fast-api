@@ -1,6 +1,6 @@
 ## Tasks to Complete
 
--[ ] Setup basic fastapi project
+-[x] Setup basic fastapi project
 -[ ] Install and connect postgres
 -[ ] Create ⁠signup API along with `user` table
     -[ ] Check whether data is inserted to DB
