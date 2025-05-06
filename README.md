@@ -6,8 +6,9 @@
     -[ ] Check whether data is inserted to DB
 -[ ] Login - JWT based auth
     -[ ] Handle Invalid Credentials
--[ ] ⁠Create a todo - ask for a `time to be done`(`Deadline`) also
--[ ] ⁠View todos, Group by `completed`, `to be done` & `time elapsed`
--[ ] ⁠Mark a todo as completed
--[ ] ⁠Edit todo
--[ ] ⁠Delete todo
+-[x] ⁠Create a Todo - ask for a `time to be done`(`Deadline`) also
+-[x] Get All Todos ; Get Todos by ID 
+-[ ] ⁠Delete Todo
+-[ ] ⁠Edit/Update Todo
+-[ ] ⁠Mark a Todo as completed
+-[ ] Group by `completed`, `to be done` & `time elapsed`
