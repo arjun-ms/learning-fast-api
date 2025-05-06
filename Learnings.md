@@ -160,3 +160,121 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread
 `models.py` -> This file defines the structure of the database table and its columns.  ( **Defines how data is stored (tables and columns).** )
 
 `schemas.py` -> This file defines the shape of the data we accept or return in API. It is used for **Validating and serializing data**.  ( **Defines how data is validated when coming in or going out.** )
+
+---
+
+# FastAPI Endpoint Creation – Quick Notes
+
+## 1. Define Endpoints with Functions
+
+Each endpoint (like `/todo`, `/todo/{id}`) is tied to a function that:
+- Accepts request data (optionally via Pydantic `schemas`)
+- Interacts with the database using SQLAlchemy
+- Returns a response (which FastAPI auto-converts to JSON)
+
+---
+
+## 2. Using `Depends(get_db)` to Access the Database
+
+```python
+db: Session = Depends(get_db)
+```
+
+`Depends()` is used for dependency injection
+
+`get_db()` yields a SQLAlchemy session
+
+# POST endpoint
+
+```
+@app.post("/todo", status_code=201)
+def create(request: schemas.Todo, db: Session = Depends(get_db)):
+    new_todo = models.Todo(
+        description=request.description,
+        deadline=request.deadline,
+        done=request.done
+    )
+    db.add(new_todo)
+    db.commit()
+    db.refresh(new_todo)
+    return new_todo
+```
+- Receives request body as a `schemas.Todo` object
+- Creates a new` models.Todo` record
+- Saves it to the database and returns the saved record
+
+## Response Control
+
+```python
+from fastapi import Response
+
+# Not recommended, but possible
+response.status_code = status.HTTP_404_NOT_FOUND
+return {"detail": "Not found"}
+```
+
+You can use `Response` to set status codes manually
+
+But using `HTTPException` is much cleaner (one-liner).
+
+## Summary Table
+
+| Concept                 | Purpose                                      |
+| ----------------------- | -------------------------------------------- |
+| `@app.post`, `@app.get` | Define API endpoints                         |
+| `Depends(get_db)`       | Inject database session (dependency)         |
+| `schemas.Todo`          | Validate incoming request data               |
+| `models.Todo`           | Interact with the database via SQLAlchemy    |
+| `HTTPException`         | Handle errors like "Not Found" or "Conflict" |
+
+
+---
+
+````markdown
+## DELETE Endpoint: Two Approaches
+
+### ✅ Method 1 – ORM Style (Safer)
+```python
+todo = db.query(models.Todo).filter(models.Todo.id == id).first()
+if not todo:
+    raise HTTPException(status_code=404)
+db.delete(todo)
+db.commit()
+return Response(status_code=204)
+````
+
+* Checks if record exists (returns 404 if not)
+* Uses `db.delete()` on ORM object
+* Returns empty `204 No Content` response
+* **Safer** and **more explicit**
+
+---
+
+### ⚡ Method 2 – Direct Query (Faster)
+
+```python
+db.query(models.Todo).filter(models.Todo.id == id).delete(synchronize_session=False)
+db.commit()
+return f"Todo with {id} deleted successfully!"
+```
+
+* Deletes directly using SQL query
+* Skips existence check (may silently fail)
+* Returns custom success message
+* **Faster** but **less safe**
+
+---
+
+### Summary
+
+**I have used the Faster Method**
+
+
+| Method   | Safe? | Fast? | Handles 404? | Style       |
+| -------- | ----- | ----- | ------------ | ----------- |
+| Method 1 | ✅     | ❌     | ✅            | ORM-based   |
+| Method 2 | ❌     | ✅     | ❌            | Query-based |
+
+```
+
+---
