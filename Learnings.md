@@ -87,3 +87,65 @@ add this line at the end:
 if __name__ == "__main__":
     uvicorn.run(app,host="127.0.0.1", port=9000)
 ```
+
+## ORMs
+
+`Object Relational Mapping`
+
+An ORM has tools to convert ("map") between **objects** in the code and **tables** ("relations") in a database.
+
+
+You create a **class** that represents a **table** in the SQL DB.
+Each **attribute** of the class represents a **column**, with a name and a type.
+
+---
+
+### 📦 Example with SQLAlchemy (used with FastAPI)
+
+```python
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    email = Column(String, unique=True, index=True)
+```
+
+* `User` → represents the `users` table.
+* `id`, `name`, `email` → columns in the table.
+* The class lets you interact with SQL using **Python objects**, instead of raw SQL queries.
+
+---
+
+### 🧠 Benefits:
+
+* Cleaner, readable code
+* Safer queries (protects against SQL injection)
+* Easy to switch databases with minimal changes
+
+---
+
+```
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+```
+
+1. `create_engine(...)`
+
+    Creates a connection engine for the SQLite database at ./blog.db.
+
+2. `connect_args={"check_same_thread": False}`
+
+    This is specific to SQLite. You need this line when using SQLite with FastAPI **to avoid threading errors.**
+
+    SQLite is single-threaded -- By default, SQLite doesn't like it when different parts of your code (running at the same time) try to use the database.
+
+    FastAPI is fast and async: It handles multiple things at the same time — this might confuse SQLite and cause errors.
+
+    This setting (check_same_thread: False) tells SQLite:
+        `“It’s okay if different threads use the database connection — don’t crash.”`
+    
