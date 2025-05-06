@@ -136,7 +136,7 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread
 
 1. `create_engine(...)`
 
-    Creates a connection engine for the SQLite database at ./blog.db.
+    Creates a connection engine for the SQLite database at ./todo.db.
 
 2. `connect_args={"check_same_thread": False}`
 
@@ -149,3 +149,14 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread
     This setting (check_same_thread: False) tells SQLite:
         `“It’s okay if different threads use the database connection — don’t crash.”`
     
+---
+
+[TablePlus](https://tableplus.com) =>  Modern, Native and Friendly GUI Tool for Database Management
+
+---
+
+`database.py` -> This file contains the database connection and the `Base` class for the ORM models.
+
+`models.py` -> This file defines the structure of the database table and its columns.  ( **Defines how data is stored (tables and columns).** )
+
+`schemas.py` -> This file defines the shape of the data we accept or return in API. It is used for **Validating and serializing data**.  ( **Defines how data is validated when coming in or going out.** )
