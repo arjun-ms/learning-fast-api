@@ -11,4 +11,4 @@
 -[x] ⁠Delete Todo
 -[x] ⁠Update Todo
 -[x] ⁠Mark a Todo as completed
--[ ] Group by `completed`, `to be done` & `time elapsed`
+-[x] Group by `completed`, `to be done` & `time elapsed`

@@ -2,7 +2,7 @@ from fastapi import FastAPI,Depends,status, Response, HTTPException
 from . import schemas,models
 from .database import engine,SessionLocal
 from sqlalchemy.orm import Session
-
+from datetime import datetime
 
 app = FastAPI()
 
@@ -17,6 +17,8 @@ def get_db():
     finally:
         db.close()
 
+#! Static Routes should be defined first before the Dynamic ones with path parameters.
+#! This is to ensure that the Static routes are matched first before the Dynamic ones with path parameters.
 
 # POST endpoint to create a new Todo
 @app.post("/todo", status_code=status.HTTP_201_CREATED)
@@ -33,12 +35,42 @@ def create(request: schemas.Todo, db: Session = Depends(get_db)):
     db.refresh(new_todo)
     
     return new_todo
-
 # GET endpoint to retrieve all Todos
 @app.get("/todo")
 def get_all(db: Session = Depends(get_db)):
     todos = db.query(models.Todo).all()
     return todos
+
+# Group todos by status (completed, pending, overdue)
+@app.get("/todo/groups", status_code=status.HTTP_200_OK)
+def group_todos(db: Session = Depends(get_db)):
+    # Get all todos
+    todos = db.query(models.Todo).all()
+    
+    # Current time for comparing deadlines
+    current_time = datetime.now()
+    
+    # Initialize result groups
+    completed = []
+    to_be_done = []
+    time_elapsed = []
+    
+    # Categorize each todo
+    for todo in todos:
+        if todo.done:
+            completed.append(todo)
+        elif todo.deadline < current_time:
+            time_elapsed.append(todo)
+        else:
+            to_be_done.append(todo)
+    
+    # Return grouped results
+    return {
+        "completed": completed,
+        "to_be_done": to_be_done,
+        "time_elapsed": time_elapsed
+    }
+
 
 # GET endpoint to retrieve a Todo by ID
 @app.get("/todo/{id}", status_code=200)
@@ -105,4 +137,6 @@ def mark_done(id, db: Session = Depends(get_db)):
     todo.done = True
     db.commit()
     
-    return {"message": f"Todo with id {id} marked as done"}
+    return {"message": f"Todo with ID: {id} marked as done"}
+
+
