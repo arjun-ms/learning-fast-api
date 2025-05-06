@@ -278,3 +278,21 @@ return f"Todo with {id} deleted successfully!"
 ```
 
 ---
+
+```
+def update_todo(id, request: schemas.Todo, db: Session = Depends(get_db)):
+```
+
+Q: What is the need for these two params : 
+`request: schemas.Todo`, `db: Session = Depends(get_db)` 
+
+1. `request: schemas.Todo`
+    Validates and parses incoming JSON data.
+    This means the request body should match the structure defined in schemas.Todo (like description, deadline, done)
+
+2. `db: Session = Depends(get_db)`
+    Provides a DB connection for queries.
+    This gives you a database session for the request
+        1. Runs the get_db() function
+        2. Connects to DB at the start
+        3. Closes the DB after the request finishes

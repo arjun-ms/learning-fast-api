@@ -67,3 +67,26 @@ def delete_todo(id,db: Session = Depends(get_db)):
     db.query(models.Todo).filter(models.Todo.id == id).delete(synchronize_session=False)
     db.commit()
     return f"Todo with {id} deleted successfully!"
+
+
+# PUT endpoint to update a Todo by ID
+@app.put("/todo/{id}", status_code=status.HTTP_202_ACCEPTED)
+def update_todo(id, request: schemas.Todo, db: Session = Depends(get_db)):
+    todo_query = db.query(models.Todo).filter(models.Todo.id == id)
+    todo = todo_query.first()
+    
+    if not todo:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail=f"Todo with id {id} not found")
+    
+    # Update with a dictionary of values
+    update_data = {
+        "description": request.description,
+        "deadline": request.deadline,
+        "done": request.done
+    }
+    
+    todo_query.update(update_data, synchronize_session=False)
+    db.commit()
+    
+    return {"message": f"Todo with id {id} updated successfully"}

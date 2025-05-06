@@ -9,6 +9,6 @@
 -[x] ⁠Create a Todo - ask for a `time to be done`(`Deadline`) also
 -[x] Get All Todos ; Get Todos by ID 
 -[x] ⁠Delete Todo
--[ ] ⁠Edit/Update Todo
+-[ ] ⁠Update Todo
 -[ ] ⁠Mark a Todo as completed
 -[ ] Group by `completed`, `to be done` & `time elapsed`
