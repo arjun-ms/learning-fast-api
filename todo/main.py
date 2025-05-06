@@ -9,6 +9,7 @@ app = FastAPI()
 # Create the database tables
 models.Base.metadata.create_all(bind=engine)
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -20,4 +21,14 @@ def get_db():
 
 @app.post("/todo")
 def create(request: schemas.Todo, db: Session = Depends(get_db)):
-    return db
+    # Create a new Todo model instance with the data from the request
+    new_todo = models.Todo(
+        description=request.description,
+        done=request.done)
+       
+    # Add the new Todo to the database
+    db.add(new_todo)
+    db.commit()
+    db.refresh(new_todo)
+    
+    return new_todo
