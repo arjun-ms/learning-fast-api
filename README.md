@@ -10,5 +10,5 @@
 -[x] Get All Todos ; Get Todos by ID 
 -[x] ⁠Delete Todo
 -[x] ⁠Update Todo
--[ ] ⁠Mark a Todo as completed
+-[x] ⁠Mark a Todo as completed
 -[ ] Group by `completed`, `to be done` & `time elapsed`

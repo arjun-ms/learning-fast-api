@@ -90,3 +90,19 @@ def update_todo(id, request: schemas.Todo, db: Session = Depends(get_db)):
     db.commit()
     
     return {"message": f"Todo with id {id} updated successfully"}
+
+# Mark todo as done
+@app.put("/todo/{id}/mark-done", status_code=status.HTTP_202_ACCEPTED)
+def mark_done(id, db: Session = Depends(get_db)):
+    todo_query = db.query(models.Todo).filter(models.Todo.id == id)
+    todo = todo_query.first()
+    
+    if not todo:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail=f"Todo with id {id} not found")
+    
+    # Update the done status
+    todo.done = True
+    db.commit()
+    
+    return {"message": f"Todo with id {id} marked as done"}
