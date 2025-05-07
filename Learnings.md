@@ -1,10 +1,10 @@
 ## to start the app
 
 ```
-uvicorn main:app --reload
+uvicorn todo.main:app --reload    
 ```
 
-`filename : the_variable_name` where you initialized the `FastAPI()`
+`module_or_folder_name.filename : the_variable_name` where you initialized the `FastAPI()`
 
 ---
 
@@ -283,7 +283,7 @@ return f"Todo with {id} deleted successfully!"
 def update_todo(id, request: schemas.Todo, db: Session = Depends(get_db)):
 ```
 
-Q: What is the need for these two params : 
+#### Q: What is the need for these two params : 
 `request: schemas.Todo`, `db: Session = Depends(get_db)` 
 
 1. `request: schemas.Todo`
@@ -296,3 +296,15 @@ Q: What is the need for these two params :
         1. Runs the get_db() function
         2. Connects to DB at the start
         3. Closes the DB after the request finishes
+
+---
+
+### using postgres instead of sqllite
+
+get a connection string of your local postgres instance:
+
+```
+postgresql://<username>:<password>@<host>:<port>/<database>
+```
+
+Avoid hardcoding this in your codebase. Use environment variables instead.
