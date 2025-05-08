@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends, status, Response, HTTPException
-from . import schemas, models
+from . import schemas, models, auth
 from .database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from datetime import datetime
@@ -26,7 +26,7 @@ def get_db():
 
 # POST endpoint to create a new Todo
 @app.post("/todo", status_code=status.HTTP_201_CREATED)
-def create(request: schemas.Todo, db: Session = Depends(get_db)):
+def create(request: schemas.Todo, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     # Create a new Todo model instance with the data from the request
     new_todo = models.Todo(
         description=request.description,
@@ -41,13 +41,13 @@ def create(request: schemas.Todo, db: Session = Depends(get_db)):
     return new_todo
 # GET endpoint to retrieve all Todos
 @app.get("/todo")
-def get_all(db: Session = Depends(get_db)):
+def get_all(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     todos = db.query(models.Todo).all()
     return todos
 
 # Group todos by status (completed, pending, overdue)
 @app.get("/todo/groups", status_code=status.HTTP_200_OK)
-def group_todos(db: Session = Depends(get_db)):
+def group_todos(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     # Get all todos
     todos = db.query(models.Todo).all()
     
@@ -78,7 +78,7 @@ def group_todos(db: Session = Depends(get_db)):
 
 # GET endpoint to retrieve a Todo by ID
 @app.get("/todo/{id}", status_code=200)
-def get_todo(id: int,response:Response, db: Session = Depends(get_db)):
+def get_todo(id: int,response:Response, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     todo = db.query(models.Todo).filter(models.Todo.id == id).first()
     if not todo:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Todo with {id} not found")
@@ -99,7 +99,7 @@ def get_todo(id: int,response:Response, db: Session = Depends(get_db)):
 # DELETE endpoint to delete a Todo by ID (Slightly faster — one DB call, but less safe)
 # This approach is less safe because it doesn't check if the Todo exists before deleting it.
 @app.delete("/todo/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_todo(id,db: Session = Depends(get_db)):
+def delete_todo(id,db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     db.query(models.Todo).filter(models.Todo.id == id).delete(synchronize_session=False)
     db.commit()
     return f"Todo with {id} deleted successfully!"
@@ -107,7 +107,7 @@ def delete_todo(id,db: Session = Depends(get_db)):
 
 # PUT endpoint to update a Todo by ID
 @app.put("/todo/{id}", status_code=status.HTTP_202_ACCEPTED)
-def update_todo(id, request: schemas.Todo, db: Session = Depends(get_db)):
+def update_todo(id, request: schemas.Todo, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     todo_query = db.query(models.Todo).filter(models.Todo.id == id)
     todo = todo_query.first()
     
@@ -129,7 +129,7 @@ def update_todo(id, request: schemas.Todo, db: Session = Depends(get_db)):
 
 # Mark todo as done
 @app.put("/todo/{id}/mark-done", status_code=status.HTTP_202_ACCEPTED)
-def mark_done(id, db: Session = Depends(get_db)):
+def mark_done(id, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     todo_query = db.query(models.Todo).filter(models.Todo.id == id)
     todo = todo_query.first()
     
