@@ -2,10 +2,10 @@
 
 -[x] Setup basic fastapi project
 -[x] Install and connect postgres
--[ ] Create ⁠signup API along with `user` table
-    -[ ] Check whether data is inserted to DB
--[ ] Login - JWT based auth
-    -[ ] Handle Invalid Credentials
+-[x] Create ⁠signup API along with `user` table
+    -[x] Check whether data is inserted to DB
+-[x] Login - JWT based auth
+    -[x] Handle Invalid Credentials
 -[x] ⁠Create a Todo - ask for a `time to be done`(`Deadline`) also
 -[x] Get All Todos ; Get Todos by ID 
 -[x] ⁠Delete Todo
