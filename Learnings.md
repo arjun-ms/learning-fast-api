@@ -308,3 +308,11 @@ postgresql://<username>:<password>@<host>:<port>/<database>
 ```
 
 Avoid hardcoding this in your codebase. Use environment variables instead.
+
+
+## Client Flow Example:
+1. User logs in → receives access_token (30m) and refresh_token (7d)
+2. Client stores both tokens securely
+3. Client uses access_token for API requests
+4. When access_token expires, client calls /refresh with refresh_token
+5. Client receives new tokens and updates storage

@@ -10,25 +10,46 @@ from .database import get_db
 SECRET_KEY = "YOUR_SECRET_KEY_HERE"  # Generate a secure key in production
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REFRESH_TOKEN_EXPIRE_DAYS = 7 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="user/login")
 
 # Token Creation Function
 def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": expire, "type": "access"})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-# Token Verification Function
-def verify_token(token: str, credentials_exception):
+def create_refresh_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    to_encode.update({"exp": expire, "type": "refresh"})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def verify_token(token: str, credentials_exception, token_type: str = "access", db: Session = None):
     try:
+        # Check if token is blacklisted (if db session is provided)
+        if db:
+            blacklisted = db.query(models.BlacklistedToken).filter(
+                models.BlacklistedToken.token == token).first()
+            if blacklisted:
+                raise credentials_exception
+        
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
+        token_payload_type: str = payload.get("type")
+        
         if email is None:
             raise credentials_exception
-        token_data = schemas.TokenData(email=email)
+            
+        # Verify token type - don't allow using refresh token as access token and vice versa
+        if token_payload_type != token_type:
+            raise credentials_exception
+            
+        token_data = schemas.TokenData(email=email, token_type=token_type)
         return token_data
     except JWTError:
         raise credentials_exception
@@ -41,7 +62,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    token_data = verify_token(token, credentials_exception)
+    token_data = verify_token(token, credentials_exception, "access")
     user = db.query(models.User).filter(models.User.email == token_data.email).first()
     if user is None:
         raise credentials_exception

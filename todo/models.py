@@ -2,6 +2,7 @@
 # It uses SQLAlchemy to define the structure of the database table and its columns.
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from .database import Base
+from datetime import datetime
 
 class Todo(Base):
     __tablename__ = "todos"
@@ -18,3 +19,10 @@ class User(Base):
     name = Column(String, index=True)
     email = Column(String, unique=True, index=True)
     password = Column(String)
+
+class BlacklistedToken(Base):
+    __tablename__ = "blacklisted_tokens"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    token = Column(String, unique=True, index=True)
+    blacklisted_on = Column(DateTime, default=datetime.utcnow)
