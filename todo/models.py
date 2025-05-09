@@ -1,6 +1,6 @@
 # This file defines the SQLAlchemy ORM model for the todo application.
 # It uses SQLAlchemy to define the structure of the database table and its columns.
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from .database import Base
 from datetime import datetime
 
@@ -11,6 +11,7 @@ class Todo(Base):
     description = Column(String, index=True)
     deadline = Column(DateTime)
     done = Column(Boolean, default=False)
+    user_id = Column(Integer, ForeignKey("users.id"))
 
 class User(Base):
     __tablename__ = "users"

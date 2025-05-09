@@ -31,7 +31,9 @@ def create(request: schemas.Todo, db: Session = Depends(get_db), current_user: m
     new_todo = models.Todo(
         description=request.description,
         deadline=request.deadline,
-        done=request.done)
+        done=request.done,
+        user_id=current_user.id  # Set the user_id to the current user's id
+    )
        
     # Add the new Todo to the database
     db.add(new_todo)
@@ -42,14 +44,14 @@ def create(request: schemas.Todo, db: Session = Depends(get_db), current_user: m
 # GET endpoint to retrieve all Todos
 @app.get("/todo")
 def get_all(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
-    todos = db.query(models.Todo).all()
+    todos = db.query(models.Todo).filter(models.Todo.user_id == current_user.id).all()
     return todos
 
 # Group todos by status (completed, pending, overdue)
 @app.get("/todo/groups", status_code=status.HTTP_200_OK)
 def group_todos(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
-    # Get all todos
-    todos = db.query(models.Todo).all()
+    # Get all todos for the current user only
+    todos = db.query(models.Todo).filter(models.Todo.user_id == current_user.id).all()
     
     # Current time for comparing deadlines
     current_time = datetime.now()
@@ -78,12 +80,13 @@ def group_todos(db: Session = Depends(get_db), current_user: models.User = Depen
 
 # GET endpoint to retrieve a Todo by ID
 @app.get("/todo/{id}", status_code=200)
-def get_todo(id: int,response:Response, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
-    todo = db.query(models.Todo).filter(models.Todo.id == id).first()
+def get_todo(id: int, response: Response, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    todo = db.query(models.Todo).filter(
+        models.Todo.id == id,
+        models.Todo.user_id == current_user.id  
+    ).first()
     if not todo:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Todo with {id} not found")
-        # response.status_code = status.HTTP_404_NOT_FOUND
-        # return {"detail": f"Todo with {id} not found"}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Todo with ID {id} not found")
     return todo
 
 # DELETE endpoint to fetch and then delete a Todo by ID (Safer but slower approach -- 2 DB calls)
@@ -99,8 +102,17 @@ def get_todo(id: int,response:Response, db: Session = Depends(get_db), current_u
 # DELETE endpoint to delete a Todo by ID (Slightly faster — one DB call, but less safe)
 # This approach is less safe because it doesn't check if the Todo exists before deleting it.
 @app.delete("/todo/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_todo(id,db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
-    db.query(models.Todo).filter(models.Todo.id == id).delete(synchronize_session=False)
+def delete_todo(id, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    # Only delete if the todo belongs to the current user
+    result = db.query(models.Todo).filter(
+        models.Todo.id == id,
+        models.Todo.user_id == current_user.id  
+    ).delete(synchronize_session=False)
+    
+    if result == 0:  # No rows were deleted
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail=f"Todo with id {id} not found")
+    
     db.commit()
     return f"Todo with {id} deleted successfully!"
 
@@ -108,7 +120,10 @@ def delete_todo(id,db: Session = Depends(get_db), current_user: models.User = De
 # PUT endpoint to update a Todo by ID
 @app.put("/todo/{id}", status_code=status.HTTP_202_ACCEPTED)
 def update_todo(id, request: schemas.Todo, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
-    todo_query = db.query(models.Todo).filter(models.Todo.id == id)
+    todo_query = db.query(models.Todo).filter(
+        models.Todo.id == id,
+        models.Todo.user_id == current_user.id 
+    )
     todo = todo_query.first()
     
     if not todo:
@@ -130,7 +145,10 @@ def update_todo(id, request: schemas.Todo, db: Session = Depends(get_db), curren
 # Mark todo as done
 @app.put("/todo/{id}/mark-done", status_code=status.HTTP_202_ACCEPTED)
 def mark_done(id, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
-    todo_query = db.query(models.Todo).filter(models.Todo.id == id)
+    todo_query = db.query(models.Todo).filter(
+        models.Todo.id == id,
+        models.Todo.user_id == current_user.id 
+    )
     todo = todo_query.first()
     
     if not todo:

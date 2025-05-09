@@ -1,4 +1,18 @@
-venv
-__pycache__
-todo.db
+# Alembic migration files
+alembic/versions/*.py
+
+# Environment variables
 .env
+env.py
+alembic.ini
+
+# Database files (if using SQLite)
+*.db
+
+# Python cache files
+*.pyc
+*.pyo
+__pycache__/
+
+# Virtual environment
+venv/
