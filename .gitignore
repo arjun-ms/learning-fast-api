@@ -16,3 +16,7 @@ __pycache__/
 
 # Virtual environment
 venv/
+
+# Notes
+JWT.md
+Learnings.md

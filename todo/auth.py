@@ -3,8 +3,10 @@ from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from . import schemas, models
-from .database import get_db
+
+from .db import models
+from . import schemas
+from .db.database import get_db
 
 # JWT Configuration
 SECRET_KEY = "YOUR_SECRET_KEY_HERE"  # Generate a secure key in production
