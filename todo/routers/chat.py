@@ -101,9 +101,12 @@ class ChatConnectionManager:
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
         
-    async def broadcast_to_room(self, room_id: str, message: str):
+    async def broadcast_to_room(self, room_id: str, message: str, sender_id: str = None):
         if room_id in self.active_rooms:
-            for connection in self.active_rooms[room_id].values():
+            for user_id, connection in self.active_rooms[room_id].items():
+                # Skip sending the message back to the sender
+                if sender_id and user_id == sender_id:
+                    continue
                 await connection.send_text(message)
     
     def get_rooms(self):
@@ -199,7 +202,8 @@ async def chat_websocket(
                                 "sender_id": user_id,
                                 "username": username,
                                 "timestamp": message_data.get("timestamp", None)
-                            })
+                            }),
+                            sender_id=user_id  # Pass the sender_id to exclude them from receiving their own message
                         )
                 
             except json.JSONDecodeError:
